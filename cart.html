@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Cart - The Petal Studio</title>
+<link rel="stylesheet" href="style.css">
+<style>
+#cart-items div { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; }
+#cart-items input { width:60px; padding:5px; border-radius:5px; border:1px solid #ddd; }
+#cart-notice { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:#ff7eb9; color:white; padding:10px 20px; border-radius:50px; display:none; font-weight:600; z-index:1000; }
+</style>
+</head>
+<body>
+<div id="cart-notice"></div>
+<header>
+  <h1>🌸 The Petal Studio</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="cart.html">🛒 Cart (<span id="cart-count">0</span>)</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
+
+<main>
+<h2>Your Cart</h2>
+<div id="cart-items"></div>
+<h3>Total: ৳<span id="total">0</span></h3>
+
+<h2>Delivery Address</h2>
+<input type="text" id="deliveryAddress" placeholder="Enter your delivery address" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:15px;">
+
+<h2>Payment</h2>
+<select id="paymentMethod" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ddd;margin-bottom:10px;">
+  <option value="">Select Payment Method</option>
+  <option value="COD">Cash on Delivery</option>
+  <option value="Bkash">Bkash</option>
+  <option value="Nagad">Nagad</option>
+  <option value="Bank Card">Bank Card</option>
+</select>
+<div id="payment-fields"></div>
+<button id="payBtn" class="btn">Pay Now</button>
+</main>
+
+<script>
+// Cart
+let cart = JSON.parse(localStorage.getItem("petalStudioCart")) || [];
+function updateCartCount(){ document.getElementById("cart-count").innerText = cart.length; }
+
+// Notice for adding products
+function showNotice(message){
+  const notice = document.getElementById("cart-notice");
+  notice.innerText = message;
+  notice.style.display="block";
+  setTimeout(()=>{ notice.style.display="none"; },1500);
+}
+
+// Render cart
+function renderCart(){
+  const div = document.getElementById("cart-items");
+  div.innerHTML="";
+  if(cart.length===0){ div.innerHTML="<p>Your cart is empty.</p>"; document.getElementById("total").innerText="0"; return; }
+  let total=0;
+  cart.forEach((item,index)=>{
+    total+=item.price*item.quantity;
+    const cartDiv = document.createElement("div");
+    cartDiv.innerHTML = `<span>${item.name} - ৳${item.price}</span>
+                         <input type="number" min="1" value="${item.quantity}" onchange="updateQuantity(${index},this.value)">
+                         <button onclick="removeItem(${index})">Remove</button>`;
+    div.appendChild(cartDiv);
+  });
+  document.getElementById("total").innerText=total;
+}
+
+// Update quantity
+function updateQuantity(index,value){
+  cart[index].quantity=parseInt(value);
+  localStorage.setItem("petalStudioCart",JSON.stringify(cart));
+  renderCart();
+  updateCartCount();
+}
+
+// Remove item
+function removeItem(index){
+  cart.splice(index,1);
+  localStorage.setItem("petalStudioCart",JSON.stringify(cart));
+  renderCart();
+  updateCartCount();
+}
+
+// Payment fields
+const paymentFields = document.getElementById("payment-fields");
+document.getElementById("paymentMethod").addEventListener("change",e=>{
+  const method = e.target.value;
+  paymentFields.innerHTML="";
+  if(method==="Bkash"){
+    paymentFields.innerHTML=`<input type="text" placeholder="Bkash Number" id="bkashNumber"><input type="password" placeholder="PIN" id="bkashPin">`;
+  } else if(method==="Nagad"){
+    paymentFields.innerHTML=`<input type="text" placeholder="Nagad Number" id="nogadNumber"><input type="password" placeholder="PIN" id="nogadPin">`;
+  } else if(method==="Bank Card"){
+    paymentFields.innerHTML=`<input type="text" placeholder="Card Number" id="cardNumber"><input type="text" placeholder="MM/YY" id="cardMMYY"><input type="text" placeholder="CVV" id="cardCVV">`;
+  }
+});
+
+// Pay now
+document.getElementById("payBtn").addEventListener("click",()=>{
+  const address = document.getElementById("deliveryAddress").value.trim();
+  const method = document.getElementById("paymentMethod").value;
+  if(cart.length===0){ alert("Your cart is empty!"); return; }
+  if(!address){ alert("Enter delivery address!"); return; }
+  if(!method){ alert("Select payment method!"); return; }
+
+  // Minimal validation
+  if(method==="Bkash"){ const n=document.getElementById("bkashNumber").value.trim(); const p=document.getElementById("bkashPin").value.trim(); if(!n||!p){ alert("Enter Bkash details!"); return; } }
+  else if(method==="Nagad"){ const n=document.getElementById("nogadNumber").value.trim(); const p=document.getElementById("nogadPin").value.trim(); if(!n||!p){ alert("Enter Nagad details!"); return; } }
+  else if(method==="Bank Card"){ const n=document.getElementById("cardNumber").value.trim(); const m=document.getElementById("cardMMYY").value.trim(); const c=document.getElementById("cardCVV").value.trim(); if(!n||!m||!c){ alert("Enter card details!"); return; } }
+
+  // Save order
+  const orders = JSON.parse(localStorage.getItem("petalStudioOrders"))||[];
+  orders.push({cart:cart,address:address,method:method,date:new Date().toLocaleString()});
+  localStorage.setItem("petalStudioOrders",JSON.stringify(orders));
+
+  cart=[]; localStorage.setItem("petalStudioCart",JSON.stringify(cart));
+  updateCartCount(); renderCart();
+  alert("Payment successful! 🌸 Your flowers will be delivered soon.");
+  window.location.href="index.html";
+});
+
+updateCartCount(); renderCart();
+</script>
+</body>
+</html>

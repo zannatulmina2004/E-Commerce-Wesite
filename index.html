@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Petal Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🌸 The Petal Studio</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="cart.html">🛒 Cart (<span id="cart-count">0</span>)</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
+
+<main>
+  <h2>Our Flowers</h2>
+  <div class="products" id="product-list"></div>
+</main>
+
+<script>
+const products = [
+{id:1,name:"Rose",price:50,img:"red_rose.jpeg"},
+{id:2,name:"Lily",price:60,img:"water_lily.jpeg"},
+{id:3,name:"Tulip",price:40,img:"red_tulip.jpeg"},
+{id:4,name:"Sunflower",price:30,img:"sunflower.jpeg"},
+{id:5,name:"Daisy",price:25,img:"daisy.jpeg"},
+{id:6,name:"Orchid",price:70,img:"orchid.jpeg"},
+{id:7,name:"Marigold",price:35,img:"marigold.jpeg"},
+{id:8,name:"Lavender",price:65,img:"levender.jpeg"},
+{id:9,name:"Jasmine",price:55,img:"jasmine.jpeg"},
+{id:10,name:"Hibiscus",price:45,img:"hibiscus.jpeg"},
+{id:11,name:"Poppy",price:50,img:"poppy.jpeg"},
+{id:12,name:"Iris",price:60,img:"iris.jpeg"},
+{id:13,name:"Daffodil",price:40,img:"daffodil.jpeg"},
+{id:15,name:"Peony",price:70,img:"peony.jpeg"},
+{id:16,name:"Hyacinth",price:65,img:"hyacinth.jpeg"},
+{id:17,name:"Calla Lily",price:75,img:"calla_lily.jpeg"},
+{id:18,name:"Hydrangea",price:80,img:"hydrangea.jpeg"},
+{id:19,name:"Carnation",price:35,img:"carnation.jpeg"},
+{id:20,name:"Geranium",price:45,img:"geranium.jpeg"},
+{id:21,name:"White Rose",price:55,img:"white_rose.jpeg"},
+{id:22,name:"White Rose Bouquet",price:550,img:"white_rose_bouquet.jpeg"},
+{id:23,name:"Pink Rose",price:60,img:"pink_rose.jpeg"},
+{id:23,name:"Purple gerbera",price:60,img:"purple_gerbera.jpeg"}
+];
+
+if(!localStorage.getItem("petalStudioProducts")) localStorage.setItem("petalStudioProducts",JSON.stringify(products));
+
+let cart = JSON.parse(localStorage.getItem("petalStudioCart")) || [];
+function updateCartCount(){ document.getElementById("cart-count").innerText = cart.length; }
+
+function addToCart(id){
+  let allProducts = JSON.parse(localStorage.getItem("petalStudioProducts")) || [];
+  let product = allProducts.find(p=>p.id===id);
+  let existing = cart.find(c=>c.id===id);
+  if(existing) existing.quantity+=1; else { product.quantity=1; cart.push(product); }
+  localStorage.setItem("petalStudioCart",JSON.stringify(cart));
+  updateCartCount();
+  const notice = document.createElement("div");
+  notice.id="cart-notice"; notice.innerText = product.name+" added!";
+  document.body.appendChild(notice);
+  notice.style.display="block";
+  setTimeout(()=>{ notice.remove(); },1500);
+}
+
+const productList=document.getElementById("product-list");
+JSON.parse(localStorage.getItem("petalStudioProducts")).forEach(p=>{
+  const div=document.createElement("div");
+  div.className="product";
+  div.innerHTML=`<img src="${p.img}" alt="${p.name}">
+                 <h3>${p.name}</h3>
+                 <p>৳${p.price}</p>
+                 <button onclick="addToCart(${p.id})">Add to Cart</button>`;
+  productList.appendChild(div);
+});
+updateCartCount();
+</script>
+</body>
+</html>
